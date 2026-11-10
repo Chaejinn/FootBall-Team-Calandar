@@ -14,9 +14,13 @@
 ## 구조
 
 ```
-public/index.html          검색 페이지
-api/search.js              팀 검색 API
-api/cal.js                 캘린더(.ics) API
+app/page.js                검색 페이지
+app/login/                 로그인·회원가입
+app/admin/                 관리자 계정·활동 기록 화면
+app/api/                   Next.js BFF (검색, 캘린더, 인증, 관리자 API)
+auth.js                    소셜 로그인 및 세션
+src/server/                서버 전용 계정·권한·로그 처리
+supabase/migrations/       계정·활동 기록 DB 스키마
 src/handlers.js            API 공통 로직, 캐시
 src/calendar.js            경기 목록 → 캘린더 이벤트
 src/ics.js                 iCalendar(.ics) 생성
@@ -46,14 +50,30 @@ API-Football 무료 플랜에서 현재 시즌 조회가 막혀 있으면 `footb
 
 1. [Vercel](https://vercel.com/)에 GitHub 계정으로 로그인
 2. **Add New → Project** → 이 저장소 Import
-3. Framework Preset은 **Other** 그대로, 빌드 설정은 건드리지 않음
+3. Framework Preset은 **Next.js**, 빌드 명령은 `npm run build`
 4. **Environment Variables**에 추가
    - `API_FOOTBALL_KEY` = 발급받은 키
    - (football-data.org를 쓸 경우) `PROVIDER` = `footballdata`, `FOOTBALL_DATA_KEY` = 키
 5. **Deploy**
 
-이후 `main`에 push할 때마다 자동으로 다시 배포된다.
+Vercel의 Git 연결을 완료하면 `main`에 push할 때마다 자동으로 다시 배포된다.
 환경 변수를 나중에 바꿨다면 Deployments에서 **Redeploy**를 한 번 해줘야 적용된다.
+
+## 계정 및 관리자 설정
+
+브라우저는 Next.js BFF를 통해 인증과 데이터를 요청한다. 계정과 활동 기록은 Supabase PostgreSQL에 저장한다. 관리자 화면은 `/admin`이며 서버에서 매번 권한을 검사한다.
+
+1. Supabase 프로젝트에서 `supabase/migrations/001_accounts.sql`을 실행한다.
+2. Supabase Auth에서 이메일 인증을 활성화하고 비밀번호 최소 길이를 12자로 설정한다. 운영용 SMTP와 배포 도메인의 Site URL 및 `/login` 리다이렉트 URL을 등록한다.
+3. Vercel에 `.env.example`의 서버 전용 환경 변수를 설정한다. `AUTH_SECRET`은 충분히 긴 무작위 값, `AUTH_URL`은 배포 도메인이다. `ADMIN_EMAIL`은 관리할 계정의 이메일이며 공개 파일에 기입하지 않는다.
+4. Google, Naver, Kakao 개발자 콘솔에서 앱을 생성하고 ID와 Secret을 설정한다. 콜백 주소는 `https://도메인/api/auth/callback/google`, `/naver`, `/kakao`이다. 제공자별 동의 항목과 서비스 공개 설정도 완료해야 한다.
+5. 관리자는 지정한 이메일의 Google 계정 또는 이메일 인증을 완료한 계정으로 로그인한다. 소셜 계정은 제공자별로 구분하며 이메일만으로 자동 연결하지 않는다.
+
+회원가입 시 이메일은 필수이고 아이디는 선택이다. 아이디를 등록하면 이메일 대신 아이디로도 로그인할 수 있다. 비밀번호는 Supabase Auth에서 관리하며 앱 DB나 로그에 저장하지 않는다. 로그인 시도는 DB 기반으로 제한한다.
+
+관리자는 가입 계정, 가입일, 최근 로그인, 상태 및 사용자별 활동 기록을 조회할 수 있다. 로그에는 활동 종류와 계정 ID만 저장하며 비밀번호, 토큰, 검색어, 원본 IP는 저장하지 않는다. 기록은 서버에서 처리한 요청 기준이며 캘린더 앱의 CDN 캐시 조회 등 모든 외부 접속을 추적하는 용도는 아니다.
+
+인증 설정이 없으면 로그인은 준비 중으로 표시하고 관리자 접근은 차단한다. 팀 검색과 캘린더 구독은 로그인 없이 계속 사용할 수 있다.
 
 ## 한국어 이름 추가
 
