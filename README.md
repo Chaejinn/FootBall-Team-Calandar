@@ -55,15 +55,6 @@ API-Football 무료 플랜에서 현재 시즌 조회가 막혀 있으면 `footb
 이후 `main`에 push할 때마다 자동으로 다시 배포된다.
 환경 변수를 나중에 바꿨다면 Deployments에서 **Redeploy**를 한 번 해줘야 적용된다.
 
-## 로컬 실행
-
-```bash
-npm i -g vercel
-cp .env.example .env   # API 키 입력
-vercel dev             # http://localhost:3000
-npm test
-```
-
 ## 한국어 이름 추가
 
 `src/i18n.js`의 `TEAMS_KO`에 한 줄 추가하면 된다. 표에 없는 팀은 원래 이름으로 나온다.
