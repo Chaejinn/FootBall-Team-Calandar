@@ -1,0 +1,14 @@
+{
+  "name": "football-team-calendar",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "축구팀 경기 일정을 캘린더 구독 URL로",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vercel dev",
+    "test": "node --test"
+  }
+}
